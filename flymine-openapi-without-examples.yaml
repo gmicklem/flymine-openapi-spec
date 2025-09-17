@@ -14,6 +14,7 @@ info:
     ## Formats
     Most endpoints support multiple output formats including JSON, XML, TSV, and CSV.
   version: 31.0.0
+  #termsOfService: https://www.flymine.org/
   contact:
     name: FlyMine Support
     email: support@flymine.org
@@ -45,7 +46,6 @@ tags:
     description: Data visualization widgets
   - name: id-resolution
     description: Identifier resolution services
-
 paths:
   /query/results:
     get:
@@ -63,30 +63,22 @@ paths:
           schema:
             type: string
           description: A definition of the query to execute in Path-Query XML or JSON format
-          examples:
-            xmlQuery:
-              summary: XML query for short genes
-              value: |
-                <query name="Short genes" model="genomic" view="Gene.primaryIdentifier Gene.symbol Gene.length Gene.chromosome.primaryIdentifier">
-                  <constraint path="Gene.organism.name" op="=" value="Drosophila melanogaster"/>
-                  <constraint path="Gene.length" op="<" value="1000"/>
-                </query>
-            jsonQuery:
-              summary: JSON query for genes on X chromosome
-              value: |
-                {
-                  "from": "Gene",
-                  "select": ["primaryIdentifier", "symbol", "length", "chromosome.primaryIdentifier"],
-                  "where": [
-                    {"path": "organism.name", "op": "=", "value": "Drosophila melanogaster"},
-                    {"path": "chromosome.primaryIdentifier", "op": "=", "value": "X"}
-                  ]
-                }
         - name: format
           in: query
           schema:
             type: string
-            enum: [tab, csv, count, json, jsonobjects, jsoncount, xml, html, rdf+xml]
+            enum:
+              [
+                tab,
+                csv,
+                count,
+                json,
+                jsonobjects,
+                jsoncount,
+                xml,
+                html,
+                rdf+xml,
+              ]
             default: tab
           description: Output format
         - name: start
@@ -101,7 +93,6 @@ paths:
             type: integer
             default: 10
           description: The maximum size of the result set
-          example: 50
         - name: columnheaders
           in: query
           schema:
@@ -114,9 +105,8 @@ paths:
           schema:
             type: string
           description: Authentication token for private data access
-          example: "abc123def456"
       responses:
-        '200':
+        "200":
           description: Query results
           content:
             application/json:
@@ -137,20 +127,22 @@ paths:
                     type: string
                   statusCode:
                     type: integer
-              example:
-                results:
-                  - ["FBgn0000008", "a", "893", "X"]
-                  - ["FBgn0000014", "abd-A", "721", "3R"]
-                  - ["FBgn0000015", "Abd-B", "982", "3R"]
-                executionTime: 234
-                wasSuccessful: true
-                statusCode: 200
+            text/tab-separated-values:
+              schema:
+                type: string
+            text/csv:
+              schema:
+                type: string
+            application/xml:
+              schema:
+                type: string
     post:
       tags:
         - query
       summary: Execute a query
       description: |
-        Execute a PathQuery to retrieve data from FlyMine using POST method.
+        Execute a PathQuery to retrieve data from FlyMine. Queries can be submitted
+        in XML or JSON format and results can be returned in various formats.
       operationId: queryResultsPost
       requestBody:
         content:
@@ -162,9 +154,21 @@ paths:
               properties:
                 query:
                   type: string
+                  description: A definition of the query to execute in Path-Query XML or JSON format
                 format:
                   type: string
-                  enum: [tab, csv, count, json, jsonobjects, jsoncount, xml, html, rdf+xml]
+                  enum:
+                    [
+                      tab,
+                      csv,
+                      count,
+                      json,
+                      jsonobjects,
+                      jsoncount,
+                      xml,
+                      html,
+                      rdf+xml,
+                    ]
                   default: tab
                 start:
                   type: integer
@@ -178,20 +182,13 @@ paths:
                   default: none
                 token:
                   type: string
-            examples:
-              transcriptionFactors:
-                summary: Query for transcription factors
-                value:
-                  query: |
-                    <query model="genomic" view="Gene.primaryIdentifier Gene.symbol Gene.goAnnotation.ontologyTerm.name">
-                      <constraint path="Gene.goAnnotation.ontologyTerm.name" op="CONTAINS" value="transcription factor"/>
-                      <constraint path="Gene.organism.name" op="=" value="Drosophila melanogaster"/>
-                    </query>
-                  format: json
-                  size: 20
       responses:
-        '200':
+        "200":
           description: Query results
+          content:
+            application/json:
+              schema:
+                type: object
 
   /query/results/gff3:
     get:
@@ -210,12 +207,6 @@ paths:
           schema:
             type: string
           description: PathQuery in XML or JSON format selecting sequence features
-          example: |
-            <query model="genomic" view="Gene.id Gene.exons.id">
-              <constraint path="Gene.chromosome.primaryIdentifier" op="=" value="2L"/>
-              <constraint path="Gene.chromosomeLocation.start" op=">" value="10000000"/>
-              <constraint path="Gene.chromosomeLocation.end" op="<" value="11000000"/>
-            </query>
         - name: view
           in: query
           schema:
@@ -223,19 +214,36 @@ paths:
             items:
               type: string
           description: Extra columns to include in the ninth column
-          example: ["Gene.symbol", "Gene.length"]
       responses:
-        '200':
+        "200":
           description: GFF3 formatted results
           content:
             text/plain:
               schema:
                 type: string
-              example: |
-                ##gff-version 3
-                2L	FlyMine	gene	10234567	10245678	.	+	.	ID=FBgn0031208;Name=CG11023;symbol=CG11023;length=11112
-                2L	FlyMine	exon	10234567	10234789	.	+	.	Parent=FBgn0031208
-                2L	FlyMine	exon	10235001	10235456	.	+	.	Parent=FBgn0031208
+    post:
+      tags:
+        - query
+        - export
+      summary: Export query results as GFF3
+      operationId: queryGFF3Post
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                view:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: GFF3 formatted results
 
   /query/results/fasta:
     get:
@@ -244,7 +252,8 @@ paths:
         - export
       summary: Export sequences as FASTA
       description: |
-        Export biological sequences from a query in FASTA format.
+        Export biological sequences from a query in FASTA format. Suitable for queries
+        returning SequenceFeature or Protein objects.
       operationId: queryFASTAGet
       parameters:
         - name: query
@@ -253,34 +262,42 @@ paths:
           schema:
             type: string
           description: PathQuery selecting sequence objects
-          example: |
-            {
-              "from": "Gene",
-              "select": ["id"],
-              "where": [
-                {"path": "symbol", "op": "ONE OF", "values": ["eve", "ftz", "zen"]}
-              ]
-            }
         - name: view
           in: query
           schema:
             type: array
             items:
               type: string
-          example: ["Gene.length", "Gene.chromosome.primaryIdentifier"]
       responses:
-        '200':
+        "200":
           description: FASTA formatted sequences
           content:
             text/plain:
               schema:
                 type: string
-              example: |
-                >FBgn0000606 type=gene; loc=2R:9979319..9984780; name=eve; length=5462;
-                ATGGAGATCAAACAAGCGAAGAGTGGAGAGAAGTGGAGAAGCAGCCAAGCAAG
-                CAACAGCACAAGGGCTCGTCGAGCAAGTCCAGCGAGGAGGATCTGCTGAGCGG
-                >FBgn0001077 type=gene; loc=3R:2648685..2653456; name=ftz; length=4772;
-                ATGGCAATGGAAGTGTCCAGCAGTCCCGTGATGGTTCATCACGTCGGTCGCTC
+    post:
+      tags:
+        - query
+        - export
+      summary: Export sequences as FASTA
+      operationId: queryFASTAPost
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                view:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: FASTA formatted sequences
 
   /query/results/bed:
     get:
@@ -289,7 +306,8 @@ paths:
         - export
       summary: Export genomic locations as BED
       description: |
-        Export genomic locations from a query in UCSC BED format.
+        Export genomic locations from a query in UCSC BED format. Suitable for queries
+        returning SequenceFeature objects.
       operationId: queryBEDGet
       parameters:
         - name: query
@@ -298,25 +316,32 @@ paths:
           schema:
             type: string
           description: PathQuery selecting sequence features
-          example: |
-            <query model="genomic" view="Gene.id">
-              <constraint path="Gene.goAnnotation.ontologyTerm.name" op="=" value="wing disc development"/>
-              <constraint path="Gene.organism.name" op="=" value="Drosophila melanogaster"/>
-            </query>
       responses:
-        '200':
+        "200":
           description: BED formatted results
           content:
             text/plain:
               schema:
                 type: string
-              example: |
-                # UCSC BED format
-                # Source: FlyMine
-                track name=FlyMine_Wing_Development description="Wing Development Genes"
-                chr2L	7529	9484	CG11023	1000	+
-                chr2R	9979319	9984780	eve	1000	-
-                chrX	2648220	2653456	runt	1000	+
+    post:
+      tags:
+        - query
+        - export
+      summary: Export genomic locations as BED
+      operationId: queryBEDPost
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+      responses:
+        "200":
+          description: BED formatted results
 
   /template/results:
     get:
@@ -324,7 +349,8 @@ paths:
         - template
       summary: Execute a template query
       description: |
-        Execute a pre-configured template query with parameters.
+        Execute a pre-configured template query with parameters. Templates are
+        predefined parameterized queries.
       operationId: templateResults
       parameters:
         - name: name
@@ -333,57 +359,62 @@ paths:
           schema:
             type: string
           description: The name of the template to run
-          example: "Gene_Pathways"
-        - name: constraint1
+        - name: constraint{N}
           in: query
           schema:
             type: string
-          description: Constraint path for parameter 1
-          example: "Gene"
-        - name: op1
+          description: Constraint path for parameter N
+        - name: op{N}
           in: query
           schema:
             type: string
-          description: Constraint operator for parameter 1
-          example: "LOOKUP"
-        - name: value1
+          description: Constraint operator for parameter N
+        - name: value{N}
           in: query
           schema:
             type: string
-          description: Constraint value for parameter 1
-          example: "hedgehog"
-        - name: extra1
+          description: Constraint value for parameter N
+        - name: extra{N}
           in: query
           schema:
             type: string
-          description: Extra constraint value for parameter 1
-          example: "D. melanogaster"
+          description: Extra constraint value for parameter N (used by LOOKUP constraints)
+        - name: code{N}
+          in: query
+          schema:
+            type: string
+          description: Constraint code for parameter N
         - name: format
           in: query
           schema:
             type: string
             enum: [tab, csv, count, json, jsonobjects, jsoncount, xml, html]
             default: tab
-          example: json
+          description: Output format
         - name: size
           in: query
           schema:
             type: integer
             default: 10
-          example: 25
+          description: Maximum number of results
+        - name: start
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Index of first result
+        - name: token
+          in: query
+          schema:
+            type: string
+          description: Authentication token
       responses:
-        '200':
+        "200":
           description: Template query results
           content:
             application/json:
               schema:
                 type: object
-              example:
-                results:
-                  - ["FBgn0003997", "wingless", "Wnt signaling pathway", "P09615"]
-                  - ["FBgn0261434", "hedgehog", "Hedgehog signaling pathway", "Q02936"]
-                executionTime: 145
-                wasSuccessful: true
 
   /templates:
     get:
@@ -400,15 +431,19 @@ paths:
             enum: [xml, json]
             default: xml
           description: Output format
-          example: json
         - name: includeBroken
           in: query
           schema:
             type: boolean
             default: false
           description: Whether to include invalid templates
+        - name: token
+          in: query
+          schema:
+            type: string
+          description: Authentication token
       responses:
-        '200':
+        "200":
           description: List of templates
           content:
             application/json:
@@ -417,23 +452,6 @@ paths:
                 properties:
                   templates:
                     type: object
-              example:
-                templates:
-                  Gene_Pathways:
-                    title: "Gene --> Pathways"
-                    description: "Show all pathways for a particular gene."
-                    comment: "Shows any pathways that the gene is part of"
-                    tags: ["im:aspect:Pathways", "im:public"]
-                    select: ["Gene.symbol", "Gene.pathways.name", "Gene.pathways.identifier"]
-                    where:
-                      - path: "Gene"
-                        op: "LOOKUP"
-                        value: "eve"
-                        editable: true
-                  Organism_Protein:
-                    title: "All proteins for organism"
-                    description: "Show all proteins for a particular organism"
-                    select: ["Protein.primaryIdentifier", "Protein.name"]
 
   /lists:
     get:
@@ -448,7 +466,6 @@ paths:
           schema:
             type: string
           description: Optional filter by name
-          example: "My_Favorite_Genes"
         - name: format
           in: query
           schema:
@@ -461,7 +478,7 @@ paths:
             type: string
           description: Authentication token
       responses:
-        '200':
+        "200":
           description: User's lists
           content:
             application/json:
@@ -472,19 +489,6 @@ paths:
                     type: array
                     items:
                       type: object
-              example:
-                lists:
-                  - name: "PL FlyBase_Annotation_IDs"
-                    size: 35807
-                    type: "Gene"
-                    dateCreated: "2023-01-15T10:30:00Z"
-                    description: "All FlyBase gene IDs"
-                    tags: ["im:public", "im:aspect:Genes"]
-                  - name: "Hox_genes"
-                    size: 8
-                    type: "Gene"
-                    dateCreated: "2023-03-20T14:15:00Z"
-                    description: "Drosophila Hox complex genes"
     post:
       tags:
         - list
@@ -497,16 +501,6 @@ paths:
             schema:
               type: string
               description: Identifiers separated by commas, tabs, or newlines
-            example: |
-              eve
-              ftz
-              zen
-              hb
-              Kr
-              kni
-              gt
-              tll
-              hkb
           application/x-www-form-urlencoded:
             schema:
               type: object
@@ -527,25 +521,15 @@ paths:
                 replaceExisting:
                   type: boolean
                   default: false
+                format:
+                  type: string
+                  enum: [json, text]
+                  default: json
                 token:
                   type: string
-            example:
-              name: "Gap_Genes"
-              type: "Gene"
-              description: "Drosophila gap genes involved in segmentation"
-              extraValue: "D. melanogaster"
-              token: "xyz789abc123"
       responses:
-        '200':
+        "200":
           description: List created successfully
-          content:
-            application/json:
-              example:
-                listName: "Gap_Genes"
-                size: 9
-                type: "Gene"
-                wasSuccessful: true
-                unmatchedIdentifiers: []
     delete:
       tags:
         - list
@@ -559,15 +543,19 @@ paths:
           schema:
             type: string
           description: Name of the list to delete
-          example: "Old_Gene_List"
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, text]
+            default: json
         - name: token
           in: query
           required: true
           schema:
             type: string
-          example: "xyz789abc123"
       responses:
-        '200':
+        "200":
           description: List deleted successfully
 
   /search:
@@ -584,14 +572,12 @@ paths:
           schema:
             type: string
           description: Search query string
-          example: "notch signaling"
         - name: size
           in: query
           schema:
             type: integer
             default: 10
           description: Maximum number of results
-          example: 20
         - name: start
           in: query
           schema:
@@ -603,15 +589,18 @@ paths:
           schema:
             type: string
           description: Filter by category facet
-          example: "Gene"
         - name: list
           in: query
           schema:
             type: string
           description: Search within a specific list
-          example: "PL_FlyBase_IDs"
+        - name: token
+          in: query
+          schema:
+            type: string
+          description: Authentication token
       responses:
-        '200':
+        "200":
           description: Search results
           content:
             application/json:
@@ -624,32 +613,32 @@ paths:
                     type: array
                     items:
                       type: object
-              example:
-                facets:
-                  Category:
-                    Gene: 156
-                    Pathway: 12
-                    Publication: 843
-                    GOTerm: 23
-                  organism:
-                    "D. melanogaster": 178
-                    "D. simulans": 12
-                results:
-                  - id: 1234567
-                    type: "Gene"
-                    score: 0.95
-                    fields:
-                      symbol: "Notch"
-                      primaryIdentifier: "FBgn0004647"
-                      name: "Notch"
-                  - id: 2345678
-                    type: "Pathway"
-                    score: 0.89
-                    fields:
-                      name: "Notch signaling pathway"
-                      identifier: "P00045"
 
   /regions/gff3:
+    get:
+      tags:
+        - genomic-regions
+        - export
+      summary: Get features overlapping genomic regions as GFF3
+      description: |
+        Find features overlapping specified genomic intervals and return in GFF3 format
+      operationId: regionsGFF3Get
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+          description: |
+            JSON object with regions, featureTypes, and organism. Example:
+            {"regions": ["2L:14615455..14619002"], "featureTypes": ["Gene"], "organism": "D. melanogaster"}
+      responses:
+        "200":
+          description: GFF3 formatted features
+          content:
+            text/plain:
+              schema:
+                type: string
     post:
       tags:
         - genomic-regions
@@ -671,7 +660,7 @@ paths:
                   type: array
                   items:
                     type: string
-                  description: Genomic intervals
+                  description: Genomic intervals (e.g., "2L:14615455..14619002")
                 featureTypes:
                   type: array
                   items:
@@ -684,29 +673,33 @@ paths:
                   type: boolean
                 extension:
                   type: number
-            example:
-              regions:
-                - "2L:14615455..14619002"
-                - "2R:5866646..5868384"
-                - "3R:2578486..2580016"
-              featureTypes:
-                - "Gene"
-                - "Exon"
-                - "MRNA"
-              organism: "D. melanogaster"
-              extension: 1000
       responses:
-        '200':
+        "200":
           description: GFF3 formatted features
-          content:
-            text/plain:
-              example: |
-                ##gff-version 3
-                2L	FlyMine	gene	14615552	14618902	.	+	.	ID=FBgn0000055;Name=Adh
-                2L	FlyMine	mRNA	14615552	14618902	.	+	.	ID=FBtr0070000;Parent=FBgn0000055
-                2L	FlyMine	exon	14615552	14615700	.	+	.	Parent=FBtr0070000
 
   /regions/sequence:
+    get:
+      tags:
+        - genomic-regions
+        - export
+      summary: Get sequences from genomic regions as FASTA
+      description: |
+        Find features overlapping specified genomic intervals and return sequences in FASTA format
+      operationId: regionsFASTAGet
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+          description: JSON object with regions, featureTypes, and organism
+      responses:
+        "200":
+          description: FASTA formatted sequences
+          content:
+            text/plain:
+              schema:
+                type: string
     post:
       tags:
         - genomic-regions
@@ -734,27 +727,33 @@ paths:
                     type: string
                 organism:
                   type: string
-            example:
-              regions:
-                - "X:2000000..2010000"
-                - "3L:1500000..1505000"
-              featureTypes:
-                - "Gene"
-                - "CDS"
-              organism: "D. melanogaster"
       responses:
-        '200':
+        "200":
           description: FASTA formatted sequences
-          content:
-            text/plain:
-              example: |
-                >FBgn0003319 X:2001234-2008765
-                ATGGATCGTAGCTACGTAGCTAGCTAGCTAGCATCGATCGATCGATCGATC
-                GCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCTAGCT
-                >FBgn0264270 3L:1501234-1504567
-                ATGCCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGATCGA
 
   /regions/bed:
+    get:
+      tags:
+        - genomic-regions
+        - export
+      summary: Get features overlapping genomic regions as BED
+      description: |
+        Find features overlapping specified genomic intervals and return in BED format
+      operationId: regionsBEDGet
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+          description: JSON object with regions, featureTypes, and organism
+      responses:
+        "200":
+          description: BED formatted features
+          content:
+            text/plain:
+              schema:
+                type: string
     post:
       tags:
         - genomic-regions
@@ -782,24 +781,9 @@ paths:
                     type: string
                 organism:
                   type: string
-            example:
-              regions:
-                - "2L:10000000..11000000"
-                - "2R:5000000..6000000"
-              featureTypes:
-                - "Gene"
-                - "TransposableElement"
-              organism: "D. melanogaster"
       responses:
-        '200':
+        "200":
           description: BED formatted features
-          content:
-            text/plain:
-              example: |
-                track name=FlyMine_Regions description="Selected genomic regions"
-                chr2L	10234567	10245678	CG11023	1000	+
-                chr2L	10456789	10467890	CG2187	1000	-
-                chr2R	5234567	5245678	1360{}1224	500	+
 
   /model:
     get:
@@ -807,7 +791,7 @@ paths:
         - model
       summary: Get data model
       description: |
-        Retrieve the FlyMine data model
+        Retrieve the FlyMine data model describing all classes, attributes, and relationships
       operationId: getModel
       parameters:
         - name: format
@@ -817,9 +801,8 @@ paths:
             enum: [xml, json]
             default: xml
           description: Output format
-          example: json
       responses:
-        '200':
+        "200":
           description: Data model
           content:
             application/json:
@@ -828,30 +811,6 @@ paths:
                 properties:
                   model:
                     type: object
-              example:
-                model:
-                  name: "genomic"
-                  package: "org.intermine.model.bio"
-                  classes:
-                    Gene:
-                      extends: ["SequenceFeature"]
-                      attributes:
-                        briefDescription:
-                          type: "java.lang.String"
-                        description:
-                          type: "java.lang.String"
-                        symbol:
-                          type: "java.lang.String"
-                      references:
-                        organism:
-                          referencedType: "Organism"
-                        chromosome:
-                          referencedType: "Chromosome"
-                      collections:
-                        alleles:
-                          referencedType: "Allele"
-                        pathways:
-                          referencedType: "Pathway"
 
   /version:
     get:
@@ -867,9 +826,8 @@ paths:
             type: string
             enum: [text, json]
             default: text
-          example: json
       responses:
-        '200':
+        "200":
           description: Version information
           content:
             application/json:
@@ -878,13 +836,6 @@ paths:
                 properties:
                   version:
                     type: string
-              example:
-                version: 35
-                executionTime: "2023.10.15 14:30:45"
-                wasSuccessful: true
-                statusCode: 200
-            text/plain:
-              example: "35"
 
   /user/token:
     get:
@@ -892,7 +843,8 @@ paths:
         - user
       summary: Get authentication token
       description: |
-        Get a 24-hour authentication token
+        Get a 24-hour authentication token. Recommended over using username/password
+        for API access.
       operationId: getToken
       parameters:
         - name: username
@@ -901,7 +853,6 @@ paths:
           schema:
             type: string
           description: FlyMine username (email)
-          example: "researcher@university.edu"
         - name: password
           in: query
           required: true
@@ -909,9 +860,8 @@ paths:
             type: string
             format: password
           description: FlyMine password
-          example: "securePassword123"
       responses:
-        '200':
+        "200":
           description: Authentication successful
           content:
             application/json:
@@ -925,11 +875,7 @@ paths:
                     type: integer
                   wasSuccessful:
                     type: boolean
-              example:
-                token: "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
-                executionTime: 45
-                wasSuccessful: true
-        '401':
+        "401":
           description: Invalid credentials
 
   /user/whoami:
@@ -945,9 +891,8 @@ paths:
           required: true
           schema:
             type: string
-          example: "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
       responses:
-        '200':
+        "200":
           description: User information
           content:
             application/json:
@@ -956,22 +901,13 @@ paths:
                 properties:
                   user:
                     type: object
-              example:
-                user:
-                  username: "researcher@university.edu"
-                  id: 123456
-                  isGuest: false
-                  isSuperuser: false
-                  preferences:
-                    do_not_spam: "true"
-                    galaxy-url: "https://usegalaxy.org/"
 
   /widgets:
     get:
       tags:
         - widget
       summary: List available widgets
-      description: Get a list of data visualization widgets
+      description: Get a list of data visualization widgets available at this service
       operationId: listWidgets
       parameters:
         - name: format
@@ -980,9 +916,8 @@ paths:
             type: string
             enum: [json, xml, tab, csv]
             default: json
-          example: json
       responses:
-        '200':
+        "200":
           description: List of widgets
           content:
             application/json:
@@ -993,20 +928,6 @@ paths:
                     type: array
                     items:
                       type: object
-              example:
-                widgets:
-                  - name: "flyatlas_for_gene"
-                    title: "Gene Expression in the Fly (FlyAtlas)"
-                    description: "Expression levels across fly tissues"
-                    widgetType: "chart"
-                    chartType: "BarChart"
-                    targets: ["Gene"]
-                  - name: "go_enrichment_for_gene"
-                    title: "Gene Ontology Enrichment"
-                    description: "GO terms enriched in this gene list"
-                    widgetType: "enrichment"
-                    targets: ["Gene"]
-                    filters: ["biological_process", "cellular_component", "molecular_function"]
 
   /list/enrichment:
     get:
@@ -1014,7 +935,7 @@ paths:
         - widget
       summary: Get enrichment widget data
       description: |
-        Statistical enrichment analysis for a list
+        Statistical enrichment analysis for a list compared to background population
       operationId: enrichmentWidget
       parameters:
         - name: list
@@ -1022,34 +943,36 @@ paths:
           schema:
             type: string
           description: Name of the list to analyze
-          example: "PL FlyTF_site_specific_TFs"
         - name: widget
           in: query
           required: true
           schema:
             type: string
           description: Name of the enrichment widget
-          example: "go_enrichment_for_gene"
         - name: maxp
           in: query
           schema:
             type: number
             default: 0.05
-          description: Maximum p-value
-          example: 0.01
+          description: Maximum p-value (0.0 - 1.0)
         - name: correction
           in: query
           schema:
             type: string
-            enum: ["Holm-Bonferroni", "Benjamini and Hochberg", "Bonferroni", "None"]
+            enum:
+              [
+                "Holm-Bonferroni",
+                "Benjamini and Hochberg",
+                "Bonferroni",
+                "None",
+              ]
             default: "Holm-Bonferroni"
-          example: "Benjamini and Hochberg"
+          description: Error correction algorithm
         - name: filter
           in: query
           schema:
             type: string
           description: Optional widget-specific filter
-          example: "biological_process"
         - name: population
           in: query
           schema:
@@ -1066,7 +989,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Enrichment analysis results
           content:
             application/json:
@@ -1077,20 +1000,6 @@ paths:
                     type: array
                     items:
                       type: object
-              example:
-                results:
-                  - item: "DNA binding"
-                    identifier: "GO:0003677"
-                    description: "Any molecular function by which a gene product interacts with DNA"
-                    pValue: 0.000001
-                    matches: 145
-                    populationAnnotationCount: 523
-                  - item: "transcription regulator activity"
-                    identifier: "GO:0140110"
-                    description: "Controlling transcription of genes"
-                    pValue: 0.000005
-                    matches: 98
-                    populationAnnotationCount: 312
 
   /ids:
     post:
@@ -1098,7 +1007,7 @@ paths:
         - id-resolution
       summary: Start ID resolution job
       description: |
-        Submit identifiers for resolution to database objects
+        Submit identifiers for resolution to database objects. Jobs run asynchronously.
       operationId: submitIDResolution
       requestBody:
         required: true
@@ -1120,34 +1029,21 @@ paths:
                   description: Type of objects to resolve to
                 extra:
                   type: string
-                  description: Additional disambiguation value
+                  description: Additional disambiguation value (e.g., organism)
                 caseSensitive:
                   type: boolean
                   default: false
                 wildCards:
                   type: boolean
                   default: false
-            example:
-              identifiers:
-                - "eve"
-                - "CG2328"
-                - "FBgn0000606"
-                - "zen"
-                - "hunchback"
-                - "Q9VWC6"
-              type: "Gene"
-              extra: "D. melanogaster"
-              caseSensitive: false
-              wildCards: true
       parameters:
         - name: token
           in: query
           required: true
           schema:
             type: string
-          example: "xyz789abc123"
       responses:
-        '200':
+        "200":
           description: Job submitted successfully
           content:
             application/json:
@@ -1157,9 +1053,6 @@ paths:
                   uid:
                     type: string
                     description: Unique job identifier
-              example:
-                uid: "job_12345abcde67890fghij"
-                wasSuccessful: true
 
   /ids/{uid}/status:
     get:
@@ -1175,15 +1068,13 @@ paths:
           schema:
             type: string
           description: Job identifier
-          example: "job_12345abcde67890fghij"
         - name: token
           in: query
           required: true
           schema:
             type: string
-          example: "xyz789abc123"
       responses:
-        '200':
+        "200":
           description: Job status
           content:
             application/json:
@@ -1193,14 +1084,6 @@ paths:
                   status:
                     type: string
                     enum: [PENDING, RUNNING, SUCCESS, ERROR]
-              example:
-                status: "SUCCESS"
-                message: "Job completed successfully"
-                stats:
-                  MATCH: 5
-                  TYPE_CONVERTED: 1
-                  OTHER: 0
-                  DUPLICATE: 0
 
   /ids/{uid}/results:
     get:
@@ -1216,15 +1099,13 @@ paths:
           schema:
             type: string
           description: Job identifier
-          example: "job_12345abcde67890fghij"
         - name: token
           in: query
           required: true
           schema:
             type: string
-          example: "xyz789abc123"
       responses:
-        '200':
+        "200":
           description: Resolution results
           content:
             application/json:
@@ -1233,27 +1114,6 @@ paths:
                 properties:
                   results:
                     type: object
-              example:
-                results:
-                  matches:
-                    eve:
-                      - id: 1007656
-                        summary:
-                          primaryIdentifier: "FBgn0000606"
-                          symbol: "eve"
-                          organism.name: "Drosophila melanogaster"
-                    CG2328:
-                      - id: 1007656
-                        summary:
-                          primaryIdentifier: "FBgn0000606"
-                          symbol: "eve"
-                          organism.name: "Drosophila melanogaster"
-                    zen:
-                      - id: 1142697
-                        summary:
-                          primaryIdentifier: "FBgn0004053"
-                          symbol: "zen"
-                  unresolved: []
 
 components:
   securitySchemes:
