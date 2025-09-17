@@ -1,0 +1,18 @@
+{
+  "baseURL": "https://www.flymine.org/flymine/service",
+  "timeout": 30000,
+  "parallel": 3,
+  "testExamples": true,
+  "testAll": false,
+  "skipSSL": false,
+  "verbose": false,
+  "filter": null,
+  "skip": [],
+  "headers": {
+    "User-Agent": "OpenAPI-Test-Runner/1.0",
+    "Accept": "application/json"
+  },
+  "auth": {},
+  "serverVariables": {},
+  "customTests": []
+}

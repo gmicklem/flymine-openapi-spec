@@ -1,0 +1,37 @@
+{
+  "name": "openapi-test-runner",
+  "version": "1.0.0",
+  "description": "Reusable test suite for OpenAPI specifications",
+  "main": "openapi-test-runner.js",
+  "scripts": {
+    "test": "node openapi-test-runner.js",
+    "test:flymine": "node openapi-test-runner.js ../flymine-openapi-with-examples.yaml --test-examples --verbose",
+    "test:flymine:html": "node openapi-test-runner.js ../flymine-openapi-with-examples.yaml --test-examples --output html",
+    "test:validate": "node openapi-test-runner.js ../flymine-openapi.yaml --skip-validation=false"
+  },
+  "keywords": [
+    "openapi",
+    "swagger",
+    "api",
+    "testing",
+    "validation",
+    "test-runner"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@apidevtools/swagger-parser": "^10.1.0",
+    "axios": "^1.6.5",
+    "chalk": "^4.1.2",
+    "commander": "^11.1.0",
+    "form-data": "^4.0.0",
+    "js-yaml": "^4.1.0",
+    "p-limit": "^3.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
