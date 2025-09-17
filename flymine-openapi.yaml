@@ -1,0 +1,1139 @@
+openapi: 3.0.3
+info:
+  title: FlyMine Web Services API
+  description: |
+    FlyMine is an integrated database for Drosophila genomics providing powerful search and
+    data warehousing capabilities for accessing integrated genomic, proteomic, and genetic data
+    for Drosophila and related organisms. This API provides RESTful web services powered by
+    InterMine, an open-source biological data warehouse system.
+
+    ## Authentication
+    Some endpoints require authentication via API token. Obtain a token using the /user/token endpoint
+    with username and password, then include it as a query parameter in subsequent requests.
+
+    ## Formats
+    Most endpoints support multiple output formats including JSON, XML, TSV, and CSV.
+  version: 31.0.0
+  #termsOfService: https://www.flymine.org/
+  contact:
+    name: FlyMine Support
+    email: support@flymine.org
+    url: https://www.flymine.org/
+  license:
+    name: LGPL-2.1
+    url: https://www.gnu.org/licenses/old-licenses/lgpl-2.1.en.html
+servers:
+  - url: https://www.flymine.org/flymine/service
+    description: FlyMine production server
+tags:
+  - name: query
+    description: Query operations for retrieving genomic data
+  - name: template
+    description: Pre-configured query templates
+  - name: list
+    description: List management operations
+  - name: search
+    description: Search operations
+  - name: export
+    description: Data export in specialized formats
+  - name: genomic-regions
+    description: Genomic interval operations
+  - name: user
+    description: User account and authentication
+  - name: model
+    description: Data model operations
+  - name: widget
+    description: Data visualization widgets
+  - name: id-resolution
+    description: Identifier resolution services
+paths:
+  /query/results:
+    get:
+      tags:
+        - query
+      summary: Execute a query
+      description: |
+        Execute a PathQuery to retrieve data from FlyMine. Queries can be submitted
+        in XML or JSON format and results can be returned in various formats.
+      operationId: queryResultsGet
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+          description: A definition of the query to execute in Path-Query XML or JSON format
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum:
+              [
+                tab,
+                csv,
+                count,
+                json,
+                jsonobjects,
+                jsoncount,
+                xml,
+                html,
+                rdf+xml,
+              ]
+            default: tab
+          description: Output format
+        - name: start
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: The index of the first result to return
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: The maximum size of the result set
+        - name: columnheaders
+          in: query
+          schema:
+            type: string
+            enum: [none, path, friendly]
+            default: none
+          description: Include column headers (only for flat-file formats)
+        - name: token
+          in: query
+          schema:
+            type: string
+          description: Authentication token for private data access
+      responses:
+        "200":
+          description: Query results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: array
+                      items:
+                        type: string
+                  executionTime:
+                    type: integer
+                  wasSuccessful:
+                    type: boolean
+                  error:
+                    type: string
+                  statusCode:
+                    type: integer
+            text/tab-separated-values:
+              schema:
+                type: string
+            text/csv:
+              schema:
+                type: string
+            application/xml:
+              schema:
+                type: string
+    post:
+      tags:
+        - query
+      summary: Execute a query
+      description: |
+        Execute a PathQuery to retrieve data from FlyMine. Queries can be submitted
+        in XML or JSON format and results can be returned in various formats.
+      operationId: queryResultsPost
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                  description: A definition of the query to execute in Path-Query XML or JSON format
+                format:
+                  type: string
+                  enum:
+                    [
+                      tab,
+                      csv,
+                      count,
+                      json,
+                      jsonobjects,
+                      jsoncount,
+                      xml,
+                      html,
+                      rdf+xml,
+                    ]
+                  default: tab
+                start:
+                  type: integer
+                  default: 0
+                size:
+                  type: integer
+                  default: 10
+                columnheaders:
+                  type: string
+                  enum: [none, path, friendly]
+                  default: none
+                token:
+                  type: string
+      responses:
+        "200":
+          description: Query results
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /query/results/gff3:
+    get:
+      tags:
+        - query
+        - export
+      summary: Export query results as GFF3
+      description: |
+        Export sequence features from a query in GFF3 format. Suitable for queries
+        returning SequenceFeature objects.
+      operationId: queryGFF3Get
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+          description: PathQuery in XML or JSON format selecting sequence features
+        - name: view
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+          description: Extra columns to include in the ninth column
+      responses:
+        "200":
+          description: GFF3 formatted results
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      tags:
+        - query
+        - export
+      summary: Export query results as GFF3
+      operationId: queryGFF3Post
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                view:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: GFF3 formatted results
+
+  /query/results/fasta:
+    get:
+      tags:
+        - query
+        - export
+      summary: Export sequences as FASTA
+      description: |
+        Export biological sequences from a query in FASTA format. Suitable for queries
+        returning SequenceFeature or Protein objects.
+      operationId: queryFASTAGet
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+          description: PathQuery selecting sequence objects
+        - name: view
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+      responses:
+        "200":
+          description: FASTA formatted sequences
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      tags:
+        - query
+        - export
+      summary: Export sequences as FASTA
+      operationId: queryFASTAPost
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+                view:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        "200":
+          description: FASTA formatted sequences
+
+  /query/results/bed:
+    get:
+      tags:
+        - query
+        - export
+      summary: Export genomic locations as BED
+      description: |
+        Export genomic locations from a query in UCSC BED format. Suitable for queries
+        returning SequenceFeature objects.
+      operationId: queryBEDGet
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+          description: PathQuery selecting sequence features
+      responses:
+        "200":
+          description: BED formatted results
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      tags:
+        - query
+        - export
+      summary: Export genomic locations as BED
+      operationId: queryBEDPost
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - query
+              properties:
+                query:
+                  type: string
+      responses:
+        "200":
+          description: BED formatted results
+
+  /template/results:
+    get:
+      tags:
+        - template
+      summary: Execute a template query
+      description: |
+        Execute a pre-configured template query with parameters. Templates are
+        predefined parameterized queries.
+      operationId: templateResults
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+          description: The name of the template to run
+        - name: constraint{N}
+          in: query
+          schema:
+            type: string
+          description: Constraint path for parameter N
+        - name: op{N}
+          in: query
+          schema:
+            type: string
+          description: Constraint operator for parameter N
+        - name: value{N}
+          in: query
+          schema:
+            type: string
+          description: Constraint value for parameter N
+        - name: extra{N}
+          in: query
+          schema:
+            type: string
+          description: Extra constraint value for parameter N (used by LOOKUP constraints)
+        - name: code{N}
+          in: query
+          schema:
+            type: string
+          description: Constraint code for parameter N
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [tab, csv, count, json, jsonobjects, jsoncount, xml, html]
+            default: tab
+          description: Output format
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: Maximum number of results
+        - name: start
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Index of first result
+        - name: token
+          in: query
+          schema:
+            type: string
+          description: Authentication token
+      responses:
+        "200":
+          description: Template query results
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /templates:
+    get:
+      tags:
+        - template
+      summary: List available templates
+      description: Retrieve a list of all available query templates
+      operationId: listTemplates
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [xml, json]
+            default: xml
+          description: Output format
+        - name: includeBroken
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Whether to include invalid templates
+        - name: token
+          in: query
+          schema:
+            type: string
+          description: Authentication token
+      responses:
+        "200":
+          description: List of templates
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  templates:
+                    type: object
+
+  /lists:
+    get:
+      tags:
+        - list
+      summary: Get lists
+      description: Retrieve lists accessible to the user
+      operationId: getLists
+      parameters:
+        - name: name
+          in: query
+          schema:
+            type: string
+          description: Optional filter by name
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, html, text, csv, tab]
+            default: json
+        - name: token
+          in: query
+          schema:
+            type: string
+          description: Authentication token
+      responses:
+        "200":
+          description: User's lists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  lists:
+                    type: array
+                    items:
+                      type: object
+    post:
+      tags:
+        - list
+      summary: Create a new list
+      description: Create a new list by uploading identifiers
+      operationId: createList
+      requestBody:
+        content:
+          text/plain:
+            schema:
+              type: string
+              description: Identifiers separated by commas, tabs, or newlines
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - name
+                - type
+              properties:
+                name:
+                  type: string
+                  description: Name for the new list
+                type:
+                  type: string
+                  description: Type of objects in the list
+                description:
+                  type: string
+                extraValue:
+                  type: string
+                replaceExisting:
+                  type: boolean
+                  default: false
+                format:
+                  type: string
+                  enum: [json, text]
+                  default: json
+                token:
+                  type: string
+      responses:
+        "200":
+          description: List created successfully
+    delete:
+      tags:
+        - list
+      summary: Delete a list
+      description: Delete a list belonging to the authenticated user
+      operationId: deleteList
+      parameters:
+        - name: name
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Name of the list to delete
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, text]
+            default: json
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List deleted successfully
+
+  /search:
+    get:
+      tags:
+        - search
+      summary: Keyword search
+      description: |
+        Perform a keyword search across FlyMine data with faceting support
+      operationId: search
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Search query string
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+          description: Maximum number of results
+        - name: start
+          in: query
+          schema:
+            type: integer
+            default: 0
+          description: Index of first result
+        - name: facet_Category
+          in: query
+          schema:
+            type: string
+          description: Filter by category facet
+        - name: list
+          in: query
+          schema:
+            type: string
+          description: Search within a specific list
+        - name: token
+          in: query
+          schema:
+            type: string
+          description: Authentication token
+      responses:
+        "200":
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  facets:
+                    type: object
+                  results:
+                    type: array
+                    items:
+                      type: object
+
+  /regions/gff3:
+    get:
+      tags:
+        - genomic-regions
+        - export
+      summary: Get features overlapping genomic regions as GFF3
+      description: |
+        Find features overlapping specified genomic intervals and return in GFF3 format
+      operationId: regionsGFF3Get
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+          description: |
+            JSON object with regions, featureTypes, and organism. Example:
+            {"regions": ["2L:14615455..14619002"], "featureTypes": ["Gene"], "organism": "D. melanogaster"}
+      responses:
+        "200":
+          description: GFF3 formatted features
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      tags:
+        - genomic-regions
+        - export
+      summary: Get features overlapping genomic regions as GFF3
+      operationId: regionsGFF3Post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - regions
+                - featureTypes
+                - organism
+              properties:
+                regions:
+                  type: array
+                  items:
+                    type: string
+                  description: Genomic intervals (e.g., "2L:14615455..14619002")
+                featureTypes:
+                  type: array
+                  items:
+                    type: string
+                  description: Types of features to find
+                organism:
+                  type: string
+                  description: Organism name
+                isInterbase:
+                  type: boolean
+                extension:
+                  type: number
+      responses:
+        "200":
+          description: GFF3 formatted features
+
+  /regions/sequence:
+    get:
+      tags:
+        - genomic-regions
+        - export
+      summary: Get sequences from genomic regions as FASTA
+      description: |
+        Find features overlapping specified genomic intervals and return sequences in FASTA format
+      operationId: regionsFASTAGet
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+          description: JSON object with regions, featureTypes, and organism
+      responses:
+        "200":
+          description: FASTA formatted sequences
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      tags:
+        - genomic-regions
+        - export
+      summary: Get sequences from genomic regions as FASTA
+      operationId: regionsFASTAPost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - regions
+                - featureTypes
+                - organism
+              properties:
+                regions:
+                  type: array
+                  items:
+                    type: string
+                featureTypes:
+                  type: array
+                  items:
+                    type: string
+                organism:
+                  type: string
+      responses:
+        "200":
+          description: FASTA formatted sequences
+
+  /regions/bed:
+    get:
+      tags:
+        - genomic-regions
+        - export
+      summary: Get features overlapping genomic regions as BED
+      description: |
+        Find features overlapping specified genomic intervals and return in BED format
+      operationId: regionsBEDGet
+      parameters:
+        - name: query
+          in: query
+          required: true
+          schema:
+            type: string
+          description: JSON object with regions, featureTypes, and organism
+      responses:
+        "200":
+          description: BED formatted features
+          content:
+            text/plain:
+              schema:
+                type: string
+    post:
+      tags:
+        - genomic-regions
+        - export
+      summary: Get features overlapping genomic regions as BED
+      operationId: regionsBEDPost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - regions
+                - featureTypes
+                - organism
+              properties:
+                regions:
+                  type: array
+                  items:
+                    type: string
+                featureTypes:
+                  type: array
+                  items:
+                    type: string
+                organism:
+                  type: string
+      responses:
+        "200":
+          description: BED formatted features
+
+  /model:
+    get:
+      tags:
+        - model
+      summary: Get data model
+      description: |
+        Retrieve the FlyMine data model describing all classes, attributes, and relationships
+      operationId: getModel
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [xml, json]
+            default: xml
+          description: Output format
+      responses:
+        "200":
+          description: Data model
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  model:
+                    type: object
+
+  /version:
+    get:
+      tags:
+        - model
+      summary: Get API version
+      description: Get the web service version number
+      operationId: getVersion
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [text, json]
+            default: text
+      responses:
+        "200":
+          description: Version information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+
+  /user/token:
+    get:
+      tags:
+        - user
+      summary: Get authentication token
+      description: |
+        Get a 24-hour authentication token. Recommended over using username/password
+        for API access.
+      operationId: getToken
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+          description: FlyMine username (email)
+        - name: password
+          in: query
+          required: true
+          schema:
+            type: string
+            format: password
+          description: FlyMine password
+      responses:
+        "200":
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: 24-hour authentication token
+                  executionTime:
+                    type: integer
+                  wasSuccessful:
+                    type: boolean
+        "401":
+          description: Invalid credentials
+
+  /user/whoami:
+    get:
+      tags:
+        - user
+      summary: Get current user info
+      description: Retrieve information about the currently authenticated user
+      operationId: whoami
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User information
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    type: object
+
+  /widgets:
+    get:
+      tags:
+        - widget
+      summary: List available widgets
+      description: Get a list of data visualization widgets available at this service
+      operationId: listWidgets
+      parameters:
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, xml, tab, csv]
+            default: json
+      responses:
+        "200":
+          description: List of widgets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  widgets:
+                    type: array
+                    items:
+                      type: object
+
+  /list/enrichment:
+    get:
+      tags:
+        - widget
+      summary: Get enrichment widget data
+      description: |
+        Statistical enrichment analysis for a list compared to background population
+      operationId: enrichmentWidget
+      parameters:
+        - name: list
+          in: query
+          schema:
+            type: string
+          description: Name of the list to analyze
+        - name: widget
+          in: query
+          required: true
+          schema:
+            type: string
+          description: Name of the enrichment widget
+        - name: maxp
+          in: query
+          schema:
+            type: number
+            default: 0.05
+          description: Maximum p-value (0.0 - 1.0)
+        - name: correction
+          in: query
+          schema:
+            type: string
+            enum:
+              [
+                "Holm-Bonferroni",
+                "Benjamini and Hochberg",
+                "Bonferroni",
+                "None",
+              ]
+            default: "Holm-Bonferroni"
+          description: Error correction algorithm
+        - name: filter
+          in: query
+          schema:
+            type: string
+          description: Optional widget-specific filter
+        - name: population
+          in: query
+          schema:
+            type: string
+          description: Background population list name
+        - name: format
+          in: query
+          schema:
+            type: string
+            enum: [json, xml, tab, csv]
+            default: json
+        - name: token
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Enrichment analysis results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      type: object
+
+  /ids:
+    post:
+      tags:
+        - id-resolution
+      summary: Start ID resolution job
+      description: |
+        Submit identifiers for resolution to database objects. Jobs run asynchronously.
+      operationId: submitIDResolution
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - identifiers
+                - type
+              properties:
+                identifiers:
+                  type: array
+                  items:
+                    type: string
+                  description: List of identifiers to resolve
+                type:
+                  type: string
+                  description: Type of objects to resolve to
+                extra:
+                  type: string
+                  description: Additional disambiguation value (e.g., organism)
+                caseSensitive:
+                  type: boolean
+                  default: false
+                wildCards:
+                  type: boolean
+                  default: false
+      parameters:
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Job submitted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  uid:
+                    type: string
+                    description: Unique job identifier
+
+  /ids/{uid}/status:
+    get:
+      tags:
+        - id-resolution
+      summary: Check job status
+      description: Check the status of an ID resolution job
+      operationId: checkIDResolutionStatus
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Job identifier
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Job status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [PENDING, RUNNING, SUCCESS, ERROR]
+
+  /ids/{uid}/results:
+    get:
+      tags:
+        - id-resolution
+      summary: Get job results
+      description: Retrieve the results of a completed ID resolution job
+      operationId: getIDResolutionResults
+      parameters:
+        - name: uid
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Job identifier
+        - name: token
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Resolution results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: object
+
+components:
+  securitySchemes:
+    tokenAuth:
+      type: apiKey
+      in: query
+      name: token
+      description: FlyMine authentication token obtained from /user/token endpoint
+
+security:
+  - {}
+  - tokenAuth: []
+
+x-externalResources:
+  - x-url: https://www.flymine.org/flymine/
+    x-type: website
+    x-description: FlyMine homepage
+  - x-url: http://intermine.org/im-docs/docs/web-services/
+    x-type: documentation
+    x-description: InterMine web services documentation
+  - x-url: https://github.com/intermine/flymine
+    x-type: repository
+    x-description: FlyMine source code repository
