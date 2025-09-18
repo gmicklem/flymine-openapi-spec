@@ -119,7 +119,18 @@ paths:
           in: query
           schema:
             type: string
-            enum: [tab, csv, count, json, jsonobjects, jsoncount, xml, html, rdf+xml]
+            enum:
+              [
+                tab,
+                csv,
+                count,
+                json,
+                jsonobjects,
+                jsoncount,
+                xml,
+                html,
+                rdf+xml,
+              ]
             default: tab
           description: Output format
         - name: start
@@ -149,7 +160,7 @@ paths:
           description: Authentication token for private data access
           example: "abc123def456"
       responses:
-        '200':
+        "200":
           description: Query results
           content:
             application/json:
@@ -187,7 +198,15 @@ paths:
                   summary: Response for eve gene query
                   value:
                     results:
-                      - ["FBgn0000606", "eve", "even-skipped", "7784", "2R", "5865334", "5873117"]
+                      - [
+                          "FBgn0000606",
+                          "eve",
+                          "even-skipped",
+                          "7784",
+                          "2R",
+                          "5865334",
+                          "5873117",
+                        ]
                     executionTime: 142
                     wasSuccessful: true
                     statusCode: 200
@@ -195,10 +214,30 @@ paths:
                   summary: Response for transcription factor genes
                   value:
                     results:
-                      - ["FBgn0000606", "eve", "even-skipped", "DNA-binding transcription factor activity"]
-                      - ["FBgn0001077", "ftz", "fushi tarazu", "DNA-binding transcription factor activity"]
-                      - ["FBgn0004053", "zen", "zerknüllt", "DNA-binding transcription factor activity"]
-                      - ["FBgn0001180", "hb", "hunchback", "DNA-binding transcription factor activity"]
+                      - [
+                          "FBgn0000606",
+                          "eve",
+                          "even-skipped",
+                          "DNA-binding transcription factor activity",
+                        ]
+                      - [
+                          "FBgn0001077",
+                          "ftz",
+                          "fushi tarazu",
+                          "DNA-binding transcription factor activity",
+                        ]
+                      - [
+                          "FBgn0004053",
+                          "zen",
+                          "zerknüllt",
+                          "DNA-binding transcription factor activity",
+                        ]
+                      - [
+                          "FBgn0001180",
+                          "hb",
+                          "hunchback",
+                          "DNA-binding transcription factor activity",
+                        ]
                     executionTime: 567
                     wasSuccessful: true
                     statusCode: 200
@@ -221,7 +260,18 @@ paths:
                   type: string
                 format:
                   type: string
-                  enum: [tab, csv, count, json, jsonobjects, jsoncount, xml, html, rdf+xml]
+                  enum:
+                    [
+                      tab,
+                      csv,
+                      count,
+                      json,
+                      jsonobjects,
+                      jsoncount,
+                      xml,
+                      html,
+                      rdf+xml,
+                    ]
                   default: tab
                 start:
                   type: integer
@@ -274,7 +324,7 @@ paths:
                   columnheaders: friendly
                   size: 50
       responses:
-        '200':
+        "200":
           description: Query results
 
   /query/results/gff3:
@@ -309,7 +359,7 @@ paths:
           description: Extra columns to include in the ninth column
           example: ["Gene.symbol", "Gene.length"]
       responses:
-        '200':
+        "200":
           description: GFF3 formatted results
           content:
             text/plain:
@@ -353,7 +403,7 @@ paths:
               type: string
           example: ["Gene.length", "Gene.chromosome.primaryIdentifier"]
       responses:
-        '200':
+        "200":
           description: FASTA formatted sequences
           content:
             text/plain:
@@ -388,7 +438,7 @@ paths:
               <constraint path="Gene.organism.name" op="=" value="Drosophila melanogaster"/>
             </query>
       responses:
-        '200':
+        "200":
           description: BED formatted results
           content:
             text/plain:
@@ -495,7 +545,7 @@ paths:
             default: 10
           example: 25
       responses:
-        '200':
+        "200":
           description: Template query results
           content:
             application/json:
@@ -508,7 +558,12 @@ paths:
                     results:
                       - ["FBgn0000606", "eve", "Segmentation", "P06602"]
                       - ["FBgn0001077", "ftz", "Segmentation", "P07713"]
-                      - ["FBgn0004053", "zen", "Dorsal/ventral axis formation", "P09102"]
+                      - [
+                          "FBgn0004053",
+                          "zen",
+                          "Dorsal/ventral axis formation",
+                          "P09102",
+                        ]
                     executionTime: 145
                     wasSuccessful: true
                     statusCode: 200
@@ -516,8 +571,20 @@ paths:
                   summary: Response for eve protein domains
                   value:
                     results:
-                      - ["FBgn0000606", "eve", "even-skipped", "Homeobox", "DNA binding"]
-                      - ["FBgn0000606", "eve", "even-skipped", "Helix-turn-helix", "DNA binding"]
+                      - [
+                          "FBgn0000606",
+                          "eve",
+                          "even-skipped",
+                          "Homeobox",
+                          "DNA binding",
+                        ]
+                      - [
+                          "FBgn0000606",
+                          "eve",
+                          "even-skipped",
+                          "Helix-turn-helix",
+                          "DNA binding",
+                        ]
                     executionTime: 87
                     wasSuccessful: true
                     statusCode: 200
@@ -545,7 +612,7 @@ paths:
             default: false
           description: Whether to include invalid templates
       responses:
-        '200':
+        "200":
           description: List of templates
           content:
             application/json:
@@ -561,7 +628,12 @@ paths:
                     description: "Show all pathways for a particular gene."
                     comment: "Shows any pathways that the gene is part of"
                     tags: ["im:aspect:Pathways", "im:public"]
-                    select: ["Gene.symbol", "Gene.pathways.name", "Gene.pathways.identifier"]
+                    select:
+                      [
+                        "Gene.symbol",
+                        "Gene.pathways.name",
+                        "Gene.pathways.identifier",
+                      ]
                     where:
                       - path: "Gene"
                         op: "LOOKUP"
@@ -613,7 +685,7 @@ paths:
             type: string
           description: Authentication token
       responses:
-        '200':
+        "200":
           description: User's lists
           content:
             application/json:
@@ -725,7 +797,7 @@ paths:
                   type: "Gene"
                   description: "Drosophila gap genes involved in segmentation"
                   extraValue: "D. melanogaster"
-                  token: "xyz789abc123"
+                  token: ""
               hoxGenesList:
                 summary: Create Hox genes list
                 value:
@@ -734,7 +806,7 @@ paths:
                   description: "Homeotic genes controlling body segment identity"
                   extraValue: "D. melanogaster"
                   replaceExisting: false
-                  token: "xyz789abc123"
+                  token: ""
               notchPathwayList:
                 summary: Create Notch pathway genes list
                 value:
@@ -742,9 +814,9 @@ paths:
                   type: "Gene"
                   description: "Genes involved in Notch signaling pathway"
                   extraValue: "D. melanogaster"
-                  token: "xyz789abc123"
+                  token: ""
       responses:
-        '200':
+        "200":
           description: List created successfully
           content:
             application/json:
@@ -773,9 +845,9 @@ paths:
           required: true
           schema:
             type: string
-          example: "xyz789abc123"
+          example: ""
       responses:
-        '200':
+        "200":
           description: List deleted successfully
 
   /search:
@@ -837,7 +909,7 @@ paths:
           description: Search within a specific list
           example: "PL_FlyBase_IDs"
       responses:
-        '200':
+        "200":
           description: Search results
           content:
             application/json:
@@ -1005,7 +1077,7 @@ paths:
                   organism: "D. melanogaster"
                   isInterbase: false
       responses:
-        '200':
+        "200":
           description: GFF3 formatted features
           content:
             text/plain:
@@ -1088,7 +1160,7 @@ paths:
                     - "Gene"
                   organism: "D. melanogaster"
       responses:
-        '200':
+        "200":
           description: FASTA formatted sequences
           content:
             text/plain:
@@ -1148,7 +1220,7 @@ paths:
                 - "TransposableElement"
               organism: "D. melanogaster"
       responses:
-        '200':
+        "200":
           description: BED formatted features
           content:
             text/plain:
@@ -1176,7 +1248,7 @@ paths:
           description: Output format
           example: json
       responses:
-        '200':
+        "200":
           description: Data model
           content:
             application/json:
@@ -1226,7 +1298,7 @@ paths:
             default: text
           example: json
       responses:
-        '200':
+        "200":
           description: Version information
           content:
             application/json:
@@ -1268,7 +1340,7 @@ paths:
           description: FlyMine password
           example: "securePassword123"
       responses:
-        '200':
+        "200":
           description: Authentication successful
           content:
             application/json:
@@ -1286,7 +1358,7 @@ paths:
                 token: "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
                 executionTime: 45
                 wasSuccessful: true
-        '401':
+        "401":
           description: Invalid credentials
 
   /user/whoami:
@@ -1304,7 +1376,7 @@ paths:
             type: string
           example: "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
       responses:
-        '200':
+        "200":
           description: User information
           content:
             application/json:
@@ -1339,7 +1411,7 @@ paths:
             default: json
           example: json
       responses:
-        '200':
+        "200":
           description: List of widgets
           content:
             application/json:
@@ -1366,7 +1438,12 @@ paths:
                         description: "GO terms enriched in this gene list"
                         widgetType: "enrichment"
                         targets: ["Gene"]
-                        filters: ["biological_process", "cellular_component", "molecular_function"]
+                        filters:
+                          [
+                            "biological_process",
+                            "cellular_component",
+                            "molecular_function",
+                          ]
                       - name: "protein_domains"
                         title: "Protein Domain Enrichment"
                         description: "Protein domains enriched in gene lists"
@@ -1438,7 +1515,13 @@ paths:
           in: query
           schema:
             type: string
-            enum: ["Holm-Bonferroni", "Benjamini and Hochberg", "Bonferroni", "None"]
+            enum:
+              [
+                "Holm-Bonferroni",
+                "Benjamini and Hochberg",
+                "Bonferroni",
+                "None",
+              ]
             default: "Holm-Bonferroni"
           example: "Benjamini and Hochberg"
         - name: filter
@@ -1463,7 +1546,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Enrichment analysis results
           content:
             application/json:
@@ -1615,9 +1698,9 @@ paths:
           required: true
           schema:
             type: string
-          example: "xyz789abc123"
+          example: ""
       responses:
-        '200':
+        "200":
           description: Job submitted successfully
           content:
             application/json:
@@ -1651,9 +1734,9 @@ paths:
           required: true
           schema:
             type: string
-          example: "xyz789abc123"
+          example: ""
       responses:
-        '200':
+        "200":
           description: Job status
           content:
             application/json:
@@ -1692,9 +1775,9 @@ paths:
           required: true
           schema:
             type: string
-          example: "xyz789abc123"
+          example: ""
       responses:
-        '200':
+        "200":
           description: Resolution results
           content:
             application/json:
@@ -1757,7 +1840,7 @@ paths:
             type: string
           description: Authentication token for private lists
       responses:
-        '200':
+        "200":
           description: GFF3 formatted list contents
           content:
             text/plain:
@@ -1798,7 +1881,7 @@ paths:
               list: "PL FlyBase_Annotation_IDs"
               view: ["Gene.symbol", "Gene.length"]
       responses:
-        '200':
+        "200":
           description: GFF3 formatted list contents
 
   /list/results/fasta:
@@ -1833,7 +1916,7 @@ paths:
             type: string
           description: Authentication token for private lists
       responses:
-        '200':
+        "200":
           description: FASTA formatted sequences
           content:
             text/plain:
@@ -1876,7 +1959,7 @@ paths:
               list: "Gap_Genes"
               view: ["Gene.length", "Gene.chromosome.primaryIdentifier"]
       responses:
-        '200':
+        "200":
           description: FASTA formatted sequences
 
   /regions/list:
@@ -1938,7 +2021,7 @@ paths:
             type: string
           description: Authentication token
       responses:
-        '200':
+        "200":
           description: List created successfully
           content:
             application/json:
@@ -2042,7 +2125,7 @@ paths:
               organism: "D. melanogaster"
               extension: 1000
       responses:
-        '200':
+        "200":
           description: List created successfully
 
   /query/tolist:
@@ -2101,7 +2184,7 @@ paths:
             type: string
           description: Authentication token
       responses:
-        '200':
+        "200":
           description: List created from query results
           content:
             application/json:
@@ -2176,7 +2259,7 @@ paths:
               description: "Genes in hedgehog signaling pathway"
               tags: ["pathway", "signaling"]
       responses:
-        '200':
+        "200":
           description: List created from query results
 
   /lists/append:
@@ -2227,7 +2310,7 @@ paths:
             type: string
           description: Authentication token
       responses:
-        '200':
+        "200":
           description: Items appended successfully
           content:
             application/json:
@@ -2307,7 +2390,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Union list created successfully
           content:
             application/json:
@@ -2373,7 +2456,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Intersection list created successfully
 
   /lists/subtract:
@@ -2427,7 +2510,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Subtraction list created successfully
 
   /lists/diff:
@@ -2481,7 +2564,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Difference list created successfully
 
   /login:
@@ -2514,7 +2597,7 @@ paths:
               user: "researcher@university.edu"
               password: "securePassword123"
       responses:
-        '200':
+        "200":
           description: Login successful
           content:
             application/json:
@@ -2532,7 +2615,7 @@ paths:
                 token: "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"
                 executionTime: 123
                 wasSuccessful: true
-        '401':
+        "401":
           description: Invalid credentials
           content:
             application/json:
@@ -2565,7 +2648,7 @@ paths:
             type: string
           description: Authentication token to invalidate
       responses:
-        '200':
+        "200":
           description: Logout successful
           content:
             application/json:
@@ -2579,7 +2662,7 @@ paths:
               example:
                 message: "User logged out successfully"
                 wasSuccessful: true
-        '401':
+        "401":
           description: Invalid or expired token
 
   /sequence:
@@ -2624,7 +2707,7 @@ paths:
             default: fasta
           description: Output format
       responses:
-        '200':
+        "200":
           description: Sequence data
           content:
             text/plain:
@@ -2665,7 +2748,7 @@ paths:
             enum: [json, xml]
             default: json
       responses:
-        '200':
+        "200":
           description: Summary fields for all classes
           content:
             application/json:
@@ -2725,7 +2808,7 @@ paths:
             enum: [json, xml]
             default: json
       responses:
-        '200':
+        "200":
           description: List of possible values
           content:
             application/json:
@@ -2767,7 +2850,7 @@ paths:
             enum: [json, xml]
             default: json
       responses:
-        '200':
+        "200":
           description: Class keys for all classes
           content:
             application/json:
@@ -2813,7 +2896,7 @@ paths:
             enum: [json, xml]
             default: json
       responses:
-        '200':
+        "200":
           description: Web application properties
           content:
             application/json:
@@ -2877,7 +2960,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Query results appended to list
           content:
             application/json:
@@ -2922,7 +3005,7 @@ paths:
             type: string
           description: Authentication token for private tags
       responses:
-        '200':
+        "200":
           description: Available list tags
           content:
             application/json:
@@ -2985,7 +3068,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Tags added successfully
     delete:
       tags:
@@ -3015,7 +3098,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Tags removed successfully
 
   /lists/rename:
@@ -3054,7 +3137,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: List renamed successfully
           content:
             application/json:
@@ -3071,7 +3154,7 @@ paths:
                 oldname: "My_Test_Genes"
                 newname: "Validated_Gap_Genes"
                 wasSuccessful: true
-        '400':
+        "400":
           description: List not found or name already exists
 
   /user/preferences:
@@ -3098,7 +3181,7 @@ paths:
             enum: [json, xml]
             default: json
       responses:
-        '200':
+        "200":
           description: User preferences
           content:
             application/json:
@@ -3115,7 +3198,7 @@ paths:
                   galaxy-url: "https://usegalaxy.org/"
                   default-query-format: "json"
                   email-notifications: "false"
-        '401':
+        "401":
           description: Authentication required
     post:
       tags:
@@ -3148,7 +3231,7 @@ paths:
               key: "do_not_spam"
               value: "false"
       responses:
-        '200':
+        "200":
           description: Preference updated successfully
           content:
             application/json:
@@ -3187,7 +3270,7 @@ paths:
             enum: [json, xml]
             default: json
       responses:
-        '200':
+        "200":
           description: Available facets
           content:
             application/json:
@@ -3244,7 +3327,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Chart data
           content:
             application/json:
@@ -3298,7 +3381,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Table data
           content:
             application/json:
@@ -3368,7 +3451,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Query results
 
   /template/tags:
@@ -3387,7 +3470,7 @@ paths:
             enum: [json, xml]
             default: json
       responses:
-        '200':
+        "200":
           description: Template tags
           content:
             application/json:
@@ -3463,7 +3546,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: List created from template results
           content:
             application/json:
@@ -3510,7 +3593,7 @@ paths:
           description: Target programming language
           example: "python"
       responses:
-        '200':
+        "200":
           description: Generated code
           content:
             text/plain:
@@ -3556,7 +3639,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Faceted list data
 
   /user/queries:
@@ -3583,7 +3666,7 @@ paths:
             enum: [json, xml]
             default: json
       responses:
-        '200':
+        "200":
           description: User's saved queries
           content:
             application/json:
@@ -3658,7 +3741,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Query saved successfully
 
   /branding:
@@ -3671,7 +3754,7 @@ paths:
         including colors, logos, and project information.
       operationId: getBranding
       responses:
-        '200':
+        "200":
           description: Branding information
           content:
             application/json:
@@ -3703,7 +3786,7 @@ paths:
         BlueGenes is the modern web interface for InterMine databases.
       operationId: getBlueGenesProperties
       responses:
-        '200':
+        "200":
           description: BlueGenes configuration
           content:
             application/json:
@@ -3716,7 +3799,8 @@ paths:
                 properties:
                   mineName: "FlyMine"
                   toolsPath: "/tools"
-                  reportWidgets: ["ProteinAtlasExpression", "FlyAtlas", "Publications"]
+                  reportWidgets:
+                    ["ProteinAtlasExpression", "FlyAtlas", "Publications"]
                   listWidgets: ["go_enrichment", "pathway_enrichment"]
 
   /lists/jaccard-index:
@@ -3742,7 +3826,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Jaccard similarity coefficient
           content:
             application/json:
@@ -3796,7 +3880,7 @@ paths:
             enum: [json, xml]
             default: json
       responses:
-        '200':
+        "200":
           description: Lists containing the object
           content:
             application/json:
@@ -3844,7 +3928,7 @@ paths:
             enum: [json, xml]
             default: json
       responses:
-        '200':
+        "200":
           description: Available schemas
           content:
             application/json:
@@ -3922,7 +4006,7 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Template uploaded successfully
           content:
             application/json:
@@ -3961,7 +4045,7 @@ paths:
             enum: [json, xml]
             default: json
       responses:
-        '200':
+        "200":
           description: User account information
           content:
             application/json:
